@@ -459,6 +459,11 @@
 
   function sayYes() {
     questionCard.style.display = 'none';
+    // If she's dodged at least once, noBtn was reparented to <body> (see
+    // moveButtonAway) to escape .card's backdrop-filter containing block —
+    // so it's no longer inside questionCard and hiding that div alone
+    // doesn't hide it anymore. Hide it explicitly too.
+    noBtn.style.display = 'none';
     successScreen.classList.add('show');
     launchConfetti();
     notifyYes();
