@@ -338,6 +338,19 @@
     questionCard.style.display = 'none';
     successScreen.classList.add('show');
     launchConfetti();
+    notifyYes();
+  }
+
+  // Push a notification via ntfy.sh so a phone subscribed to this topic
+  // finds out the moment she says yes. Fire-and-forget: a failed/blocked
+  // request should never break the celebration for her.
+  const NTFY_TOPIC = 'ofir-date-yes-ea3b72707d10';
+  function notifyYes() {
+    fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+      method: 'POST',
+      body: 'She said YES! 💖 Time to plan the date.',
+      headers: { Title: 'She said yes! 🎉', Tags: 'tada,heart' }
+    }).catch(() => {});
   }
 
   // Floating background hearts
