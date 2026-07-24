@@ -210,6 +210,68 @@
     max-width: 380px;
   }
 
+  .plan-form {
+    margin-top: 26px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .plan-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .plan-field label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #a5335a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .plan-field input {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 2px solid rgba(214, 51, 108, 0.25);
+    background: rgba(255, 255, 255, 0.7);
+    color: #6b1d3a;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .plan-field input:focus {
+    border-color: var(--heart);
+    box-shadow: 0 0 0 4px rgba(255, 71, 126, 0.15);
+  }
+
+  #confirmPlanBtn {
+    margin-top: 4px;
+    align-self: center;
+    background: linear-gradient(135deg, var(--yes-1), var(--yes-2));
+    color: #fff;
+    box-shadow: 0 10px 25px rgba(37, 117, 252, 0.4);
+  }
+
+  #confirmPlanBtn:active {
+    transform: scale(0.95);
+  }
+
+  .plan-confirmed {
+    display: none;
+    margin-top: 24px;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 18px;
+    color: #6b1d3a;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
   .signature {
     position: fixed;
     bottom: 14px;
@@ -260,6 +322,26 @@
   <div class="big-emoji">🎉</div>
   <h1>Yay! I knew you couldn't resist my charm 😎</h1>
   <p>It's a date! Get ready — I'm already thinking about what snacks to bring. 🍿💕</p>
+
+  <div class="plan-form" id="planForm">
+    <div class="plan-field">
+      <label for="dateInput">Date</label>
+      <input type="date" id="dateInput">
+    </div>
+    <div class="plan-field">
+      <label for="timeInput">Time</label>
+      <input type="time" id="timeInput">
+    </div>
+    <div class="plan-field">
+      <label for="activityInput">What should we do?</label>
+      <input type="text" id="activityInput" placeholder="e.g. Drinks at a bar">
+    </div>
+    <button id="confirmPlanBtn" onclick="confirmPlan()">Lock it in 💌</button>
+  </div>
+
+  <div class="plan-confirmed" id="planConfirmed">
+    <p id="planConfirmedText"></p>
+  </div>
 </div>
 
 <div class="signature">Custom coded by Ofir 😉</div>
@@ -270,6 +352,12 @@
   const questionCard = document.getElementById('questionCard');
   const successScreen = document.getElementById('successScreen');
   const bgHearts = document.getElementById('bgHearts');
+  const planForm = document.getElementById('planForm');
+  const planConfirmed = document.getElementById('planConfirmed');
+  const planConfirmedText = document.getElementById('planConfirmedText');
+  const dateInput = document.getElementById('dateInput');
+  const timeInput = document.getElementById('timeInput');
+  const activityInput = document.getElementById('activityInput');
 
   let dodgeCount = 0;
   const noPhrases = ["No", "Nope!", "Try again", "Nuh-uh", "Nice try", "Almost!", "So close", "Are you sure?", "Really?", "Think again 😏"];
@@ -339,6 +427,52 @@
     successScreen.classList.add('show');
     launchConfetti();
     notifyYes();
+    setDefaultPlan();
+  }
+
+  // Default plan: tomorrow, 20:00, a bar — she can change any of it before
+  // locking it in.
+  function getDefaultDateStr() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function setDefaultPlan() {
+    dateInput.value = getDefaultDateStr();
+    timeInput.value = '20:00';
+    activityInput.value = 'Drinks at a bar';
+  }
+
+  function formatDateForDisplay(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+      weekday: 'long', month: 'long', day: 'numeric'
+    });
+  }
+
+  function confirmPlan() {
+    // Fields default to tomorrow/20:00/bar already, but guard against her
+    // clearing one and hitting the button anyway.
+    if (!dateInput.value) dateInput.value = getDefaultDateStr();
+    if (!timeInput.value) timeInput.value = '20:00';
+    if (!activityInput.value.trim()) activityInput.value = 'Drinks at a bar';
+
+    const niceDate = formatDateForDisplay(dateInput.value);
+    const timeVal = timeInput.value;
+    const activityVal = activityInput.value.trim();
+
+    fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+      method: 'POST',
+      body: `Plan locked in! 📅 ${niceDate} at ${timeVal} — ${activityVal}`
+    }).catch(() => {});
+
+    planForm.style.display = 'none';
+    planConfirmedText.textContent = `It's set — ${niceDate} at ${timeVal}, ${activityVal}. Can't wait 💕`;
+    planConfirmed.style.display = 'block';
   }
 
   // Push a notification via ntfy.sh so a phone subscribed to this topic
