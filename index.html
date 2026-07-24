@@ -344,12 +344,17 @@
   // Push a notification via ntfy.sh so a phone subscribed to this topic
   // finds out the moment she says yes. Fire-and-forget: a failed/blocked
   // request should never break the celebration for her.
+  //
+  // No custom headers here on purpose: a Title/Tags header turns this into
+  // a "non-simple" CORS request, which forces the browser to send an OPTIONS
+  // preflight first — exactly the kind of request some mobile browsers,
+  // in-app browsers (WhatsApp/Instagram), and ad/privacy blockers silently
+  // drop. A plain text/plain POST body needs no preflight at all.
   const NTFY_TOPIC = 'ofir-date-yes-ea3b72707d10';
   function notifyYes() {
     fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
       method: 'POST',
-      body: 'She said YES! 💖 Time to plan the date.',
-      headers: { Title: 'She said yes! 🎉', Tags: 'tada,heart' }
+      body: 'She said yes! 🎉 She said YES! 💖 Time to plan the date.'
     }).catch(() => {});
   }
 
