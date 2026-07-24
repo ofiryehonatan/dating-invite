@@ -311,7 +311,7 @@
 <div class="card" id="questionCard">
   <div class="emoji-top">💘</div>
   <h1>Hey you... would you like to go on a date with me? 👀</h1>
-  <p class="subtitle">Take your time. (But the "No" button is a little shy 😉)</p>
+  <p class="subtitle" id="subtitle">Take your time. (But the "No" button is a little shy 😉)</p>
   <div class="button-row">
     <button id="yesBtn" onclick="sayYes()">Yes 💖</button>
     <button id="noBtn" onclick="dodge()">No</button>
@@ -358,9 +358,23 @@
   const dateInput = document.getElementById('dateInput');
   const timeInput = document.getElementById('timeInput');
   const activityInput = document.getElementById('activityInput');
+  const subtitle = document.getElementById('subtitle');
 
   let dodgeCount = 0;
   const noPhrases = ["No", "Nope!", "Try again", "Nuh-uh", "Nice try", "Almost!", "So close", "Are you sure?", "Really?", "Think again 😏"];
+
+  // Escalating commentary as the attempts pile up — picked by threshold
+  // rather than one message per count so it still makes sense past 20 tries.
+  function updateTeaseSubtitle() {
+    const n = dodgeCount;
+    let msg;
+    if (n < 3) msg = `Nice try (attempt #${n}) — it's just warming up 😏`;
+    else if (n < 6) msg = `Attempt #${n}. The "No" button does not consent 🙅`;
+    else if (n < 10) msg = `#${n} tries. This is basically cardio now 🏃‍♀️`;
+    else if (n < 15) msg = `#${n}! Respect the persistence, but it's still shy 🙈`;
+    else msg = `${n} attempts?! At this point just say yes already 😌`;
+    subtitle.textContent = msg;
+  }
 
   function moveButtonAway() {
     if (!noBtn.classList.contains('fixed-fly')) {
@@ -379,6 +393,11 @@
     // the button past the edge of the screen).
     dodgeCount++;
     noBtn.textContent = noPhrases[(dodgeCount - 1) % noPhrases.length];
+    updateTeaseSubtitle();
+
+    // A short buzz sells the "almost got it" feeling on phones (no-op
+    // silently where Vibration API isn't supported, e.g. iOS Safari/desktop).
+    if (navigator.vibrate) navigator.vibrate(35);
 
     const margin = 12;
     const btnRect = noBtn.getBoundingClientRect();
@@ -397,6 +416,11 @@
 
     noBtn.style.left = newX + 'px';
     noBtn.style.top = newY + 'px';
+
+    // The "No" button shrinks a little more with every failed attempt,
+    // floored so it never gets too small to tap at all.
+    const noScale = Math.max(0.55, 1 - dodgeCount * 0.025);
+    noBtn.style.transform = `scale(${noScale})`;
 
     // Yes button grows a bit each time to encourage the inevitable
     const scale = Math.min(1.5, 1 + dodgeCount * 0.05);
