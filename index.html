@@ -479,14 +479,12 @@
   function setDefaultPlan() {
     dateInput.value = getDefaultDateStr();
     timeInput.value = '20:00';
-    activityInput.value = 'Drinks at a bar';
+    activityInput.value = 'Drinks';
   }
 
   function formatDateForDisplay(dateStr) {
     const [y, m, d] = dateStr.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString(undefined, {
-      weekday: 'long', month: 'long', day: 'numeric'
-    });
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'long' });
   }
 
   function confirmPlan() {
@@ -494,7 +492,7 @@
     // clearing one and hitting the button anyway.
     if (!dateInput.value) dateInput.value = getDefaultDateStr();
     if (!timeInput.value) timeInput.value = '20:00';
-    if (!activityInput.value.trim()) activityInput.value = 'Drinks at a bar';
+    if (!activityInput.value.trim()) activityInput.value = 'Drinks';
 
     const niceDate = formatDateForDisplay(dateInput.value);
     const timeVal = timeInput.value;
@@ -506,7 +504,7 @@
     }).catch(() => {});
 
     planForm.style.display = 'none';
-    planConfirmedText.textContent = `It's set — ${niceDate} at ${timeVal}, ${activityVal}. I can't wait 🥂`;
+    planConfirmedText.textContent = `${niceDate}, ${timeVal}. ${activityVal}. Wear something nice.🥂`;
     planConfirmed.style.display = 'block';
   }
 
